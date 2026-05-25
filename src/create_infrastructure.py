@@ -27,7 +27,29 @@ def create_buckets(s3_client, buckets: tuple[str]):
         else:
             print(f"Bucket '{bucket}' creado de forma exitosa.")
 
+
+sqs = boto3.client("sqs")
+QUEUE_NAME = "csv_queue"
+
+# Función para generar una nueva cola SQS
+def create_sqs_queue(sqs_client, queue_name):
+    try:
+        sqs_response = sqs_client.create_queue(
+            QueueName=queue_name
+        )
+    except ClientError as err:
+        if err.response['Error']['Code'] == 'QueueNameExists':
+            print(f"La cola {queue_name} ya existe. Omitiendo operación")
+        else:
+            print(f"Ocurrio un error al crear la cola : '{queue_name}'")
+            raise err
+    else:
+        print(f"Cola '{queue_name}' creada de forma exitosa")
+        return sqs_response['QueueUrl']
+
+
+
 # Crear raw-bucket y processed-bucket
 create_buckets(s3, BUCKETS)
-
-# TODO: Crear la cola SQS (create_queue)
+queue_url = create_sqs_queue(sqs, QUEUE_NAME)
+print(queue_url)
