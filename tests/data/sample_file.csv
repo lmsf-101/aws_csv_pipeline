@@ -1,0 +1,8 @@
+order_id,customer_name,city,delivery_status,delivery_date,amount
+ORD-1001,John Doe,New York,Delivered,2026-05-20,150.5
+ORD-1002,jane smith,Los Angeles,Shipped,2026-05-22,89.99
+ORD-1003,Carlos Ortega,chicago,Pending,,210.0
+ORD-1004,alice brown,houston,Delivered,2026-05-18,45.0
+ORD-1005,,Miami,Cancelled,,0.0
+ORD-1006,Robert Taylor,Seattle,Shipped,2026-05-24,
+ORD-1007,Michael Green,,Pending,2026-05-26,125.75
