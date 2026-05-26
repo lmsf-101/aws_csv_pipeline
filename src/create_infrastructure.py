@@ -2,7 +2,9 @@ import boto3
 from botocore.exceptions import ClientError
 
 s3 = boto3.client("s3")
-BUCKETS = ('raw-bucket', 'processed-bucket')
+RAW_BUCKET = 'raw-bucket'
+FINAL_BUCKET = 'processed-bucket'
+BUCKETS = (RAW_BUCKET, FINAL_BUCKET)
 
 # Función para generar buckets, según la tupla de nombres
 def create_buckets(s3_client, buckets: tuple[str]):
@@ -45,11 +47,27 @@ def create_sqs_queue(sqs_client, queue_name):
             raise err
     else:
         print(f"Cola '{queue_name}' creada de forma exitosa")
-        return sqs_response['QueueUrl']
+        queue_URL = sqs_response['QueueUrl']
+        return queue_URL
 
+# Funcion para recuperar el ARN de la cola generada en base de su URL
+def get_queue_ARN(sqs_client, queue_URL):
+    response = sqs_client.get_queue_attributes(
+        QueueUrl=queue_URL,
+        AttributeNames=[
+            'QueueArn'
+        ]
+    )
 
+    return response["Attributes"]['QueueArn']
 
 # Crear raw-bucket y processed-bucket
 create_buckets(s3, BUCKETS)
+
+# Crear cola SQS 'csv_queue'
 queue_url = create_sqs_queue(sqs, QUEUE_NAME)
 print(queue_url)
+
+# Obtener ARN de 'csv_queue' a base de su URL
+queue_arn = get_queue_ARN(sqs, queue_url)
+print(queue_arn)
