@@ -61,6 +61,39 @@ def get_queue_ARN(sqs_client, queue_URL):
 
     return response["Attributes"]['QueueArn']
 
+# Configuración de Notificaciones para S3 bucket con cola SQS
+def set_bucket_notification_to_sqs(s3_client, bucket, queue_arn):
+    try:
+        response = s3_client.put_bucket_notification_configuration(
+            Bucket=bucket,
+            NotificationConfiguration={
+                'QueueConfigurations': [
+                    {
+                        'QueueArn': queue_arn,
+                        'Events': [
+                            's3:ObjectCreated:*'
+                        ],
+                        'Filter': {
+                            'Key': {
+                                'FilterRules': [
+                                    {
+                                        'Name': 'suffix',
+                                        'Value': '.csv'
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                ]
+            }
+        )
+    except ClientError as err:
+        print(f"Hubo un error al momento de configurar las notificaciones S3 con SQS.")
+        raise err
+    else:
+        print(f"Configurado notificaciones de bucket S3 : {bucket} con SQS con ARN : {queue_arn}")
+        print(response)
+
 # Crear raw-bucket y processed-bucket
 create_buckets(s3, BUCKETS)
 
@@ -71,3 +104,6 @@ print(queue_url)
 # Obtener ARN de 'csv_queue' a base de su URL
 queue_arn = get_queue_ARN(sqs, queue_url)
 print(queue_arn)
+
+# Configurar notificaciones S3 a 'csv_queue'
+set_bucket_notification_to_sqs(s3, RAW_BUCKET, queue_arn)
